@@ -1,0 +1,17 @@
+<RCC>
+  <qresource prefix="img">
+    <file>Image/僵尸蘑菇王.png</file>
+    <file>Image/巴洛古.png</file>
+    <file>Image/格瑞芬多.png</file>
+    <file>Image/海怒斯.png</file>
+    <file>Image/寒霜冰龙.png</file>
+    <file>Image/黑轮王.png</file>
+    <file>Image/九尾妖狐.png</file>
+    <file>Image/蓝色蘑菇王.png</file>
+    <file>Image/喷火龙.png</file>
+    <file>Image/仙人娃娃.png</file>
+    <file>Image/雪毛怪人.png</file>
+    <file>Image/疯狂喵Z客.png</file>
+    <file>Image/蘑菇王.png</file>
+  </qresource>
+</RCC>
