@@ -1,4 +1,5 @@
 import sys
+from PySide6.QtCore import QThread, Signal, QObject,QTimer
 from PySide6.QtWidgets import QApplication,QDialog
 from qt6UI.BossKill_ui import Ui_BossKillProject
 import time
@@ -7,70 +8,171 @@ from PySide6.QtGui import QPixmap
 from threading import Thread
 
 
-
 class Boss():
     all_bosses = {}
-    def __init__(self,name:str,start_time:str,end_time:str):
-        # 创建线程字典来管理线程
-        self.threads = {}
+
+    def __init__(self, name: str, start_time: str, end_time: str):
+        self.workers = {}  # 保存worker对象
+        self.ui_widgets = {}  # 保存UI控件
+        self.threads = {}  # 保存线程
         self.name = name
         self.start_time = start_time
+        self.end_time = end_time
+
         h, m = map(int, start_time.split(':'))
         self.start_time_second = h * 3600 + m * 60
-        self.end_time = end_time
+
         h, m = map(int, end_time.split(':'))
         self.end_time_second = h * 3600 + m * 60
+
         self.kill_time = None
-        # 自动注册到类变量中
         Boss.all_bosses[name] = self
 
     @classmethod
     def find_by_name(cls, name):
-        """根据名称查找Boss"""
         return cls.all_bosses.get(name)
 
-    # 对应预计刷新状态栏的文字栏
-    def get_status(self,lineEdit,label_Stata,idx:int):
-        if idx in self.threads:
-            # 如果线程已存在，停止它
-            if self.threads[idx].is_alive():
-                self.threads[idx].stop()
+    def get_status(self, lineEdit_Refresh, label_Stata, idx: int):
+        """快速重启计时器 - 重用线程，仅重启worker"""
+        print(f"重启计时器 {idx}")
 
+        # 保存UI控件
+        self.ui_widgets[idx] = {
+            'lineEdit_Refresh': lineEdit_Refresh,
+            'label_Stata': label_Stata
+        }
+
+        # 如果worker已存在，先停止
+        if idx in self.workers:
+            print(f"停止现有worker {idx}")
+            self.workers[idx].stop()
+            # 断开旧的信号连接
+            try:
+                self.workers[idx].update_ui.disconnect()
+                self.workers[idx].thread_finished.disconnect()
+            except:
+                pass
+        else:
             # 创建新线程
-        thread_name = f"TimegoThread_{idx}"
-        new_thread = TimegoThread(self.start_time_second,self.end_time_second,lineEdit,label_Stata)
-        new_thread.name = thread_name  # 设置线程名称
+            print(f"创建新线程 {idx}")
+            thread = QThread()
+            thread.setObjectName(f"BossThread_{idx}")
+            self.threads[idx] = thread
 
-        # 存入字典
-        self.threads[idx] = new_thread
-        # 启动线程
-        new_thread.start()
+        # 创建新的worker
+        worker = TimegoWorker(
+            start_time=self.start_time_second,
+            end_time=self.end_time_second,
+            idx=idx
+        )
 
+        # 保存worker引用
+        self.workers[idx] = worker
 
+        # 移动到对应线程
+        worker.moveToThread(self.threads[idx])
 
+        # 连接信号
+        worker.update_ui.connect(self.on_update_ui)
+        worker.thread_finished.connect(self.on_thread_finished)
 
-    # 对应丢失/可能刷新的时间栏文字
+        # 如果线程未运行，启动它
+        if not self.threads[idx].isRunning():
+            self.threads[idx].start()
+
+        # 延迟一小段时间后启动worker，确保线程已准备好
+        QTimer.singleShot(50, worker.start_worker)
+
+        print(f"计时器 {idx} 重启成功")
+        return True
+
+    def on_update_ui(self, text, color, idx):
+        """更新UI"""
+        try:
+            if idx in self.ui_widgets:
+                widgets = self.ui_widgets[idx]
+
+                lineEdit = widgets.get('lineEdit_Refresh')
+                if lineEdit:
+                    lineEdit.setText(text)
+                    lineEdit.setStyleSheet(color)
+
+                label = widgets.get('label_Stata')
+                if label:
+                    # label.setText(text)
+                    label.setStyleSheet(color)
+
+        except Exception as e:
+            print(f"更新UI异常 (idx={idx}): {e}")
+
+    def on_thread_finished(self, idx):
+        """线程完成时的处理"""
+        print(f"计时器 {idx} 已完成计时")
+        # 可以在这里执行额外的清理工作
+
+    def stop_worker(self, idx):
+        """停止指定worker"""
+        if idx in self.workers:
+            print(f"停止worker {idx}")
+            self.workers[idx].stop()
+            # 可以不断开信号连接，worker会在重启时重新连接
+
+    def stop_all_workers(self):
+        """停止所有worker"""
+        for idx in list(self.workers.keys()):
+            self.stop_worker(idx)
+
+    def cleanup(self):
+        """清理所有资源"""
+        self.stop_all_workers()
+
+        # 停止所有线程
+        for idx, thread in self.threads.items():
+            if thread.isRunning():
+                thread.quit()
+                thread.wait()
+            thread.deleteLater()
+
+        self.threads.clear()
+        self.workers.clear()
+        self.ui_widgets.clear()
+
     def miss_status(self):
+        """计算丢失状态（原有方法）"""
+        from datetime import datetime
+
+        if not self.kill_time:
+            return "未击杀"
+
         current_time = datetime.now()
-        second_since_kill = (current_time - self.kill_time).total_seconds()
-        hour_since_kill = round(second_since_kill/3600,2)
+        second_since_kill = current_time.timestamp() - self.kill_time.timestamp()
+        hour_since_kill = round(second_since_kill / 3600, 2)
 
         if second_since_kill < self.start_time_second:
             return "未刷新"
-        elif second_since_kill >= self.start_time_second and second_since_kill < (self.start_time_second+self.end_time_second)/2:
+        elif self.start_time_second <= second_since_kill < (self.start_time_second + self.end_time_second) / 2:
             return f"经过{hour_since_kill}小时，小概率丢失"
-        elif second_since_kill >= (self.start_time_second+self.end_time_second)/2 and second_since_kill < self.end_time_second:
+        elif (self.start_time_second + self.end_time_second) / 2 <= second_since_kill < self.end_time_second:
             return f"经过{hour_since_kill}小时，大概率丢失"
         elif second_since_kill >= self.end_time_second:
             return f"经过{hour_since_kill}小时，已丢失"
 
+    def set_kill_time(self, kill_time_str=None):
+        from datetime import datetime
+
+        if kill_time_str:
+            self.kill_time = datetime.strptime(kill_time_str, "%Y-%m-%d %H:%M:%S")
+        else:
+            self.kill_time = datetime.now()
+
 Boss_疯狂喵Z客 = Boss('疯狂喵Z客', '00:00', '01:50')
 Boss_僵尸蘑菇王 = Boss('僵尸蘑菇王', '03:15', '03:45')
 Boss_巴洛古 = Boss('巴洛古', '06:45', '09:00')
+# Boss_巴洛古 = Boss('巴洛古', '00:00', '00:01')
 Boss_蘑菇王 = Boss('蘑菇王', '03:15', '03:45')
 Boss_雪毛怪人 = Boss('雪毛怪人', '00:45', '01:08')
-Boss_喷火龙 = Boss('喷火龙', '01:00', '01:00')
-Boss_格瑞芬多 = Boss('格瑞芬多', '01:00', '01:00')
+Boss_喷火龙 = Boss('喷火龙', '00:59', '01:00')
+Boss_格瑞芬多 = Boss('格瑞芬多', '00:59', '01:00')
 Boss_寒霜冰龙 = Boss('寒霜冰龙', '04:00', '12:00')
 Boss_海怒斯 = Boss('海怒斯', '03:00', '05:00')
 Boss_仙人娃娃 = Boss('仙人娃娃', '02:38', '03:00')
@@ -106,7 +208,10 @@ class BossKillProject(Ui_BossKillProject, QDialog):
         self.kill_time = datetime.now()
         time_now = datetime.now().strftime("%H:%M:%S")
         lineEdit=getattr(self,f"lineEdit_Killtime_{idx}")
+        lineEdit_Miss =getattr(self,f"lineEdit_Miss_{idx}")
         lineEdit.setText(time_now)
+        lineEdit_Miss .setText('')
+        lineEdit_Miss.setStyleSheet("background-color: white;")
 
     # 下次可能刷新的时间函数。对应丢失/下次可能刷新的逻辑
     def misstime(self, idx: int):
@@ -125,6 +230,7 @@ class BossKillProject(Ui_BossKillProject, QDialog):
                 lineEdit.setStyleSheet("background-color: rgb(255, 0, 0);")
             else:
                 lineEdit.setText(miss_status)
+                lineEdit.setStyleSheet("background-color: rgb(255, 255, 255);")
 
 
     # 读取刷新时间函数
@@ -152,50 +258,81 @@ class BossKillProject(Ui_BossKillProject, QDialog):
             found_boss.get_status(lineEdit_Refresh,label_Stata,idx)
 
 # 创建一个线程类，继承和重写
-class TimegoThread(Thread):
-    # 在这里传参，然后写属性
-    def __init__(self,start_time:int,end_time:int,lineEdit_Refresh,label_Stata):
+class TimegoWorker(QObject):
+    update_ui = Signal(str, str, int)
+    thread_finished = Signal(int)
+
+    def __init__(self, start_time: int, end_time: int, idx: int):
         super().__init__()
         self.start_time = start_time
         self.end_time = end_time
         self.refreshtime = 0
-        self.lineEdit_Refresh = lineEdit_Refresh
-        self.label_Stata = label_Stata
-        self._running = True  # 添加运行标志
+        self.running = False  # 初始为False，等待start_worker启动
+        self.idx = idx
+        self.timer = None
+        self.thread_start_time = 0
 
-    # 这个run方法就是以后线程要一直做的事情
-    def run(self):
-        while self._running:
-            try:
-                if self.refreshtime < self.start_time:
-                    self.lineEdit_Refresh.setText('未刷新')
-                    self.lineEdit_Refresh.setStyleSheet("background-color: rgb(255, 255, 255);")
-                    self.label_Stata.setStyleSheet("background-color: rgb(255, 255, 255);")
-                elif self.refreshtime >= self.start_time and self.refreshtime < (self.start_time + self.end_time) / 2:
-                    self.lineEdit_Refresh.setText('小概率刷新')
-                    self.lineEdit_Refresh.setStyleSheet("background-color: rgb(240,255,240);")
-                    self.label_Stata.setStyleSheet("background-color: rgb(240,255,240);")
-                elif self.refreshtime >= (self.start_time + self.end_time) / 2 and self.refreshtime < self.end_time:
-                    self.lineEdit_Refresh.setText('大概率刷新')
-                    self.lineEdit_Refresh.setStyleSheet("background-color: rgb(0, 255, 0);")
-                    self.label_Stata.setStyleSheet("background-color: rgb(0, 255, 0);")
-                elif self.refreshtime >= self.end_time:
-                    self.lineEdit_Refresh.setText('已经刷新')
-                    self.lineEdit_Refresh.setStyleSheet("background-color: rgb(255, 255, 0);")
-                    self.label_Stata.setStyleSheet("background-color: rgb(255, 255, 0);")
+    def start_worker(self):
+        """启动worker计时"""
+        if self.timer:
+            self.timer.stop()
+            self.timer.deleteLater()
 
+        self.running = True
+        self.refreshtime = 0
+        self.thread_start_time = time.time()
 
-                time.sleep(10)
-                # 整数型用加法更新
-                self.refreshtime += 10
-                # self.runstata = True
-                # 字符串用updata
-                # self.refreshtime.update()
-            except Exception as e:
-                break
-    def stop(self):  # 添加stop方法
-        """停止线程"""
-        self._running = False
+        # 创建定时器，每10秒触发一次
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.run_interval)
+        self.timer.start(10000)  # 10秒
+
+        # 立即执行一次
+        self.run_interval()
+
+    def run_interval(self):
+        """定时器触发的运行逻辑"""
+        if not self.running:
+            return
+
+        # 计算从线程启动开始的经过时间
+        elapsed_time = time.time() - self.thread_start_time
+        self.refreshtime = int(elapsed_time)  # 转换为整数秒
+
+        try:
+            if self.refreshtime < self.start_time:
+                lineEdit_Refresh_text = '未刷新'
+                color_background = "background-color: rgb(255, 255, 255);"
+            elif self.start_time <= self.refreshtime < (self.start_time + self.end_time) / 2:
+                lineEdit_Refresh_text = '小概率刷新'
+                color_background = "background-color: rgb(240,255,240);"
+            elif (self.start_time + self.end_time) / 2 <= self.refreshtime < self.end_time:
+                lineEdit_Refresh_text = '大概率刷新'
+                color_background = "background-color: rgb(0, 255, 0);"
+            elif self.end_time <= self.refreshtime < (self.end_time + 100):
+                lineEdit_Refresh_text = '已经刷新'
+                color_background = "background-color: rgb(255, 255, 0);"
+            elif self.refreshtime >= (self.end_time + 100):
+                print(f'线程 {self.idx} 已经达到时间，线程结束')
+                lineEdit_Refresh_text = '线程结束'
+                color_background = "background-color: rgb(255, 0, 0);"
+                self.running = False
+                self.timer.stop()
+                self.thread_finished.emit(self.idx)
+
+            self.update_ui.emit(lineEdit_Refresh_text, color_background, self.idx)
+
+        except Exception as e:
+            print(f"线程 {self.idx} 异常: {e}")
+            self.running = False
+
+    def stop(self):
+        """停止worker"""
+        self.running = False
+        if self.timer:
+            self.timer.stop()
+            self.timer.deleteLater()
+            self.timer = None
 
 
 
