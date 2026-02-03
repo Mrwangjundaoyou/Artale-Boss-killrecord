@@ -1,11 +1,13 @@
+import csv
 import sys
-from PySide6.QtCore import QThread, Signal, QObject,QTimer
-from PySide6.QtWidgets import QApplication,QDialog
+from PySide6.QtCore import QThread, Signal, QObject,QTimer,Qt
+from PySide6.QtWidgets import QApplication,QDialog,QMessageBox
 from qt6UI.BossKill_ui import Ui_BossKillProject
 import time
 from datetime import datetime, timedelta
 from PySide6.QtGui import QPixmap
 from threading import Thread
+import os
 
 
 class Boss():
@@ -137,15 +139,16 @@ class Boss():
         self.workers.clear()
         self.ui_widgets.clear()
 
-    def miss_status(self):
+    def miss_status(self,kill_time:str):
         """计算丢失状态（原有方法）"""
         from datetime import datetime
-
-        if not self.kill_time:
-            return "未击杀"
-
-        current_time = datetime.now()
-        second_since_kill = current_time.timestamp() - self.kill_time.timestamp()
+        kill_time_second = int(kill_time.split(":")[0])*3600+int(kill_time.split(":")[1])*60+int(kill_time.split(":")[2])
+        current_time = datetime.now().time()
+        total_seconds = current_time.hour * 3600 + current_time.minute * 60 + current_time.second
+        if kill_time_second <= total_seconds:
+            second_since_kill = total_seconds - kill_time_second
+        else:
+            second_since_kill = total_seconds + 86400 - kill_time_second
         hour_since_kill = round(second_since_kill / 3600, 2)
 
         if second_since_kill < self.start_time_second:
@@ -157,13 +160,6 @@ class Boss():
         elif second_since_kill >= self.end_time_second:
             return f"经过{hour_since_kill}小时，已丢失"
 
-    def set_kill_time(self, kill_time_str=None):
-        from datetime import datetime
-
-        if kill_time_str:
-            self.kill_time = datetime.strptime(kill_time_str, "%Y-%m-%d %H:%M:%S")
-        else:
-            self.kill_time = datetime.now()
 
 Boss_疯狂喵Z客 = Boss('疯狂喵Z客', '00:00', '01:50')
 Boss_僵尸蘑菇王 = Boss('僵尸蘑菇王', '03:15', '03:45')
@@ -193,6 +189,7 @@ class BossKillProject(Ui_BossKillProject, QDialog):
 
         # 下拉栏连接文本槽
         self.comboBox_Name.currentIndexChanged.connect(self.MinMaxtime)
+        self.pushButton_Savedata.clicked.connect(self.savedata)
 
         for i in range(115):
             btn = getattr(self,f"pushButton_Killrecord_{i}")
@@ -222,8 +219,7 @@ class BossKillProject(Ui_BossKillProject, QDialog):
         else:
             target_name = self.comboBox_Name.currentText()
             found_boss = Boss.find_by_name(target_name)
-            found_boss.kill_time = self.kill_time
-            miss_status = found_boss.miss_status()
+            miss_status = found_boss.miss_status(lineEdit_Killtime)
             lineEdit = getattr(self, f"lineEdit_Miss_{idx}")
             if '已丢失' in miss_status :
                 lineEdit.setText(miss_status)
@@ -256,6 +252,51 @@ class BossKillProject(Ui_BossKillProject, QDialog):
             lineEdit_Refresh = getattr(self, f"lineEdit_Refresh_{idx}")
             label_Stata = getattr(self, f"label_Stata_{idx}")
             found_boss.get_status(lineEdit_Refresh,label_Stata,idx)
+    # 忽略Esc关闭窗口，容易误触
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape:
+            event.ignore()  # 忽略ESC
+            return
+        super().keyPressEvent(event)
+    # 确认是否退出的消息
+    def closeEvent(self, event):
+        reply = QMessageBox.question(
+            self, '建议先保存至本地', '确定要关闭吗？',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        event.accept() if reply == QMessageBox.StandardButton.Yes else event.ignore()
+    def savedata(self):
+        softpath = os.getcwd()
+        record_data_name_list = os.listdir(softpath)
+        if 'Boss击杀记录' not in record_data_name_list:
+            with open('Boss击杀记录.txt',"a+",encoding="utf-8") as f:
+                f.write("\n---------------------------------------------\n")
+                f.close()
+        record_data_name = os.path.join(softpath,"Boss击杀记录.txt")
+        with open(record_data_name,'a+',encoding="utf-8") as f:
+            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(timestamp)
+            f.write("\n")
+            f.write('Boss名称：')
+            f.write(self.comboBox_Name.currentText())
+            f.write("\n")
+            f.write(f'{"线路":16}')
+            f.write(f'{"击杀时间":16}')
+            f.write("\n")
+            for i in range(115):
+                lineEdit_Line_save = getattr(self, f"lineEdit_Line_{i}").text()
+                lineEdit_Killtime_save = getattr(self, f"lineEdit_Killtime_{i}").text()
+                if lineEdit_Killtime_save  != "" and lineEdit_Line_save != "":
+                    f.write("\n")
+                    f.write(f'{lineEdit_Line_save:16}')
+                    f.write(f'{lineEdit_Killtime_save:16}')
+                    f.write("\n")
+            f.close()
+
+
+
+
+
 
 # 创建一个线程类，继承和重写
 class TimegoWorker(QObject):
@@ -312,9 +353,9 @@ class TimegoWorker(QObject):
             elif self.end_time <= self.refreshtime < (self.end_time + 100):
                 lineEdit_Refresh_text = '已经刷新'
                 color_background = "background-color: rgb(255, 255, 0);"
-            elif self.refreshtime >= (self.end_time + 100):
+            elif self.refreshtime >= (self.end_time + 300):
                 print(f'线程 {self.idx} 已经达到时间，线程结束')
-                lineEdit_Refresh_text = '线程结束'
+                lineEdit_Refresh_text = '已刷新超过5分钟'
                 color_background = "background-color: rgb(255, 0, 0);"
                 self.running = False
                 self.timer.stop()

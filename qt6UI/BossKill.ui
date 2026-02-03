@@ -2,6 +2,9 @@
 <ui version="4.0">
  <class>BossKillProject</class>
  <widget class="QDialog" name="BossKillProject">
+  <property name="windowModality">
+   <enum>Qt::WindowModality::NonModal</enum>
+  </property>
   <property name="enabled">
    <bool>true</bool>
   </property>

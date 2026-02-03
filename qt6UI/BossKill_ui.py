@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'BossKillhAkqOM.ui'
+## Form generated from reading UI file 'BossKilleSPzUn.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.10.1
 ##
@@ -24,6 +24,7 @@ class Ui_BossKillProject(object):
     def setupUi(self, BossKillProject):
         if not BossKillProject.objectName():
             BossKillProject.setObjectName(u"BossKillProject")
+        BossKillProject.setWindowModality(Qt.WindowModality.NonModal)
         BossKillProject.setEnabled(True)
         BossKillProject.resize(1010, 1100)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -54,6 +55,11 @@ class Ui_BossKillProject(object):
         font = QFont()
         font.setPointSize(20)
         self.comboBox_Name.setFont(font)
+        self.pushButton_Savedata = QPushButton(BossKillProject)
+        self.pushButton_Savedata.setObjectName(u"pushButton_Savedata")
+        self.pushButton_Savedata.setGeometry(QRect(880, 10, 80, 80))
+        self.pushButton_Savedata.setMinimumSize(QSize(80, 80))
+        self.pushButton_Savedata.setMaximumSize(QSize(80, 80))
         self.tabWidget = QTabWidget(BossKillProject)
         self.tabWidget.setObjectName(u"tabWidget")
         self.tabWidget.setGeometry(QRect(10, 100, 990, 990))
@@ -5091,6 +5097,7 @@ class Ui_BossKillProject(object):
         self.label_Boss.raise_()
         self.tabWidget.raise_()
         self.comboBox_Name.raise_()
+        self.pushButton_Savedata.raise_()
         self.lineEdit_Mintime.raise_()
         self.lineEdit_Maxtime.raise_()
 
@@ -5120,6 +5127,7 @@ class Ui_BossKillProject(object):
 
         self.comboBox_Name.setCurrentText("")
         self.comboBox_Name.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"\u75af\u72c2\u55b5Z\u5ba2", None))
+        self.pushButton_Savedata.setText(QCoreApplication.translate("BossKillProject", u"\u4fdd\u5b58\u8bb0\u5f55", None))
         self.pushButton_Killrecord_0.setText(QCoreApplication.translate("BossKillProject", u"\u8bb0\u5f55\u51fb\u6740\u65f6\u95f4", None))
         self.label_Stata_0.setText("")
         self.pushButton_Norefresh_0.setText(QCoreApplication.translate("BossKillProject", u"\u672a\u5237\u65b0", None))
