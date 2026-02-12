@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'BossKilleSPzUn.ui'
+## Form generated from reading UI file 'BossKillMuLRHY.ui'
 ##
 ## Created by: Qt User Interface Compiler version 6.10.1
 ##
@@ -48,6 +48,10 @@ class Ui_BossKillProject(object):
         self.comboBox_Name.addItem("")
         self.comboBox_Name.addItem("")
         self.comboBox_Name.addItem("")
+        self.comboBox_Name.addItem("")
+        self.comboBox_Name.addItem("")
+        self.comboBox_Name.addItem("")
+        self.comboBox_Name.addItem("")
         self.comboBox_Name.setObjectName(u"comboBox_Name")
         self.comboBox_Name.setGeometry(QRect(10, 10, 220, 80))
         self.comboBox_Name.setMinimumSize(QSize(220, 80))
@@ -57,7 +61,7 @@ class Ui_BossKillProject(object):
         self.comboBox_Name.setFont(font)
         self.pushButton_Savedata = QPushButton(BossKillProject)
         self.pushButton_Savedata.setObjectName(u"pushButton_Savedata")
-        self.pushButton_Savedata.setGeometry(QRect(880, 10, 80, 80))
+        self.pushButton_Savedata.setGeometry(QRect(920, 10, 80, 80))
         self.pushButton_Savedata.setMinimumSize(QSize(80, 80))
         self.pushButton_Savedata.setMaximumSize(QSize(80, 80))
         self.tabWidget = QTabWidget(BossKillProject)
@@ -5094,12 +5098,18 @@ class Ui_BossKillProject(object):
         self.label_Boss.setMaximumSize(QSize(80, 80))
         self.label_Boss.setPixmap(QPixmap(u":/img/Image/\u75af\u72c2\u55b5Z\u5ba2.png"))
         self.label_Boss.setScaledContents(True)
+        self.pushButton_Savedata_2 = QPushButton(BossKillProject)
+        self.pushButton_Savedata_2.setObjectName(u"pushButton_Savedata_2")
+        self.pushButton_Savedata_2.setGeometry(QRect(830, 10, 80, 80))
+        self.pushButton_Savedata_2.setMinimumSize(QSize(80, 80))
+        self.pushButton_Savedata_2.setMaximumSize(QSize(80, 80))
         self.label_Boss.raise_()
         self.tabWidget.raise_()
         self.comboBox_Name.raise_()
         self.pushButton_Savedata.raise_()
         self.lineEdit_Mintime.raise_()
         self.lineEdit_Maxtime.raise_()
+        self.pushButton_Savedata_2.raise_()
 
         self.retranslateUi(BossKillProject)
 
@@ -5116,14 +5126,18 @@ class Ui_BossKillProject(object):
         self.comboBox_Name.setItemText(2, QCoreApplication.translate("BossKillProject", u"\u5df4\u6d1b\u53e4", None))
         self.comboBox_Name.setItemText(3, QCoreApplication.translate("BossKillProject", u"\u8611\u83c7\u738b", None))
         self.comboBox_Name.setItemText(4, QCoreApplication.translate("BossKillProject", u"\u96ea\u6bdb\u602a\u4eba", None))
-        self.comboBox_Name.setItemText(5, QCoreApplication.translate("BossKillProject", u"\u55b7\u706b\u9f99", None))
-        self.comboBox_Name.setItemText(6, QCoreApplication.translate("BossKillProject", u"\u683c\u745e\u82ac\u591a", None))
-        self.comboBox_Name.setItemText(7, QCoreApplication.translate("BossKillProject", u"\u5bd2\u971c\u51b0\u9f99", None))
-        self.comboBox_Name.setItemText(8, QCoreApplication.translate("BossKillProject", u"\u6d77\u6012\u65af", None))
-        self.comboBox_Name.setItemText(9, QCoreApplication.translate("BossKillProject", u"\u4ed9\u4eba\u5a03\u5a03", None))
-        self.comboBox_Name.setItemText(10, QCoreApplication.translate("BossKillProject", u"\u84dd\u8272\u8611\u83c7\u738b", None))
-        self.comboBox_Name.setItemText(11, QCoreApplication.translate("BossKillProject", u"\u9ed1\u8f6e\u738b", None))
-        self.comboBox_Name.setItemText(12, QCoreApplication.translate("BossKillProject", u"\u4e5d\u5c3e\u5996\u72d0", None))
+        self.comboBox_Name.setItemText(5, QCoreApplication.translate("BossKillProject", u"\u96ea\u5c71\u5973\u5deb", None))
+        self.comboBox_Name.setItemText(6, QCoreApplication.translate("BossKillProject", u"\u55b7\u706b\u9f99", None))
+        self.comboBox_Name.setItemText(7, QCoreApplication.translate("BossKillProject", u"\u683c\u745e\u82ac\u591a", None))
+        self.comboBox_Name.setItemText(8, QCoreApplication.translate("BossKillProject", u"\u5bd2\u971c\u51b0\u9f99", None))
+        self.comboBox_Name.setItemText(9, QCoreApplication.translate("BossKillProject", u"\u6d77\u6012\u65af", None))
+        self.comboBox_Name.setItemText(10, QCoreApplication.translate("BossKillProject", u"\u4ed9\u4eba\u5a03\u5a03", None))
+        self.comboBox_Name.setItemText(11, QCoreApplication.translate("BossKillProject", u"\u80af\u5fb7\u718a", None))
+        self.comboBox_Name.setItemText(12, QCoreApplication.translate("BossKillProject", u"\u84dd\u8272\u8611\u83c7\u738b", None))
+        self.comboBox_Name.setItemText(13, QCoreApplication.translate("BossKillProject", u"\u9ed1\u8f6e\u738b", None))
+        self.comboBox_Name.setItemText(14, QCoreApplication.translate("BossKillProject", u"\u4e5d\u5c3e\u5996\u72d0", None))
+        self.comboBox_Name.setItemText(15, QCoreApplication.translate("BossKillProject", u"\u4e66\u751f\u5e7d\u7075", None))
+        self.comboBox_Name.setItemText(16, QCoreApplication.translate("BossKillProject", u"\u845b\u96f7\u91d1\u521a", None))
 
         self.comboBox_Name.setCurrentText("")
         self.comboBox_Name.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"\u75af\u72c2\u55b5Z\u5ba2", None))
@@ -6083,8 +6097,9 @@ class Ui_BossKillProject(object):
         self.lineEdit_Miss_114.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"\u672a\u77e5", None))
         self.label_Stata_114.setText("")
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_5), QCoreApplication.translate("BossKillProject", u"\u7b2c\u4e94\u7ec4", None))
-        self.lineEdit_Mintime.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"00:00", None))
-        self.lineEdit_Maxtime.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"01:50", None))
+        self.lineEdit_Mintime.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"01:50", None))
+        self.lineEdit_Maxtime.setPlaceholderText(QCoreApplication.translate("BossKillProject", u"07:00", None))
         self.label_Boss.setText("")
+        self.pushButton_Savedata_2.setText(QCoreApplication.translate("BossKillProject", u"\u8bfb\u53d6\u8bb0\u5f55", None))
     # retranslateUi
 

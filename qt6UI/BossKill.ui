@@ -96,6 +96,11 @@
    </item>
    <item>
     <property name="text">
+     <string>雪山女巫</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
      <string>喷火龙</string>
     </property>
    </item>
@@ -121,6 +126,11 @@
    </item>
    <item>
     <property name="text">
+     <string>肯德熊</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
      <string>蓝色蘑菇王</string>
     </property>
    </item>
@@ -134,8 +144,18 @@
      <string>九尾妖狐</string>
     </property>
    </item>
+   <item>
+    <property name="text">
+     <string>书生幽灵</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>葛雷金刚</string>
+    </property>
+   </item>
   </widget>
-  <widget class="QPushButton" name="pushButton_Cleandata">
+  <widget class="QPushButton" name="pushButton_Savedata">
    <property name="geometry">
     <rect>
      <x>920</x>
@@ -153,36 +173,11 @@
    <property name="maximumSize">
     <size>
      <width>80</width>
-     <height>16777215</height>
-    </size>
-   </property>
-   <property name="text">
-    <string>清除数据</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="pushButton_Reddata">
-   <property name="geometry">
-    <rect>
-     <x>830</x>
-     <y>10</y>
-     <width>80</width>
-     <height>80</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>80</width>
-     <height>80</height>
-    </size>
-   </property>
-   <property name="maximumSize">
-    <size>
-     <width>80</width>
      <height>80</height>
     </size>
    </property>
    <property name="text">
-    <string>读取数据</string>
+    <string>保存记录</string>
    </property>
   </widget>
   <widget class="QTabWidget" name="tabWidget">
@@ -19218,7 +19213,7 @@ border-radius: 8px;</string>
     <bool>true</bool>
    </property>
    <property name="placeholderText">
-    <string>00:00</string>
+    <string>01:50</string>
    </property>
   </widget>
   <widget class="QLineEdit" name="lineEdit_Maxtime">
@@ -19253,7 +19248,7 @@ border-radius: 8px;</string>
     <bool>true</bool>
    </property>
    <property name="placeholderText">
-    <string>01:50</string>
+    <string>07:00</string>
    </property>
   </widget>
   <widget class="QLabel" name="label_Boss">
@@ -19287,13 +19282,38 @@ border-radius: 8px;</string>
     <bool>true</bool>
    </property>
   </widget>
+  <widget class="QPushButton" name="pushButton_Savedata_2">
+   <property name="geometry">
+    <rect>
+     <x>830</x>
+     <y>10</y>
+     <width>80</width>
+     <height>80</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>80</width>
+     <height>80</height>
+    </size>
+   </property>
+   <property name="maximumSize">
+    <size>
+     <width>80</width>
+     <height>80</height>
+    </size>
+   </property>
+   <property name="text">
+    <string>读取记录</string>
+   </property>
+  </widget>
   <zorder>label_Boss</zorder>
   <zorder>tabWidget</zorder>
   <zorder>comboBox_Name</zorder>
-  <zorder>pushButton_Cleandata</zorder>
-  <zorder>pushButton_Reddata</zorder>
+  <zorder>pushButton_Savedata</zorder>
   <zorder>lineEdit_Mintime</zorder>
   <zorder>lineEdit_Maxtime</zorder>
+  <zorder>pushButton_Savedata_2</zorder>
  </widget>
  <resources>
   <include location="Img.qrc"/>

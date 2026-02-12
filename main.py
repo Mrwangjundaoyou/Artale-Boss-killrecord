@@ -34,7 +34,7 @@ class Boss():
     def find_by_name(cls, name):
         return cls.all_bosses.get(name)
 
-    def get_status(self, lineEdit_Refresh, label_Stata, idx: int):
+    def get_status(self, lineEdit_Refresh, label_Stata, idx: int,killtime_record:datetime = None):
         """快速重启计时器 - 重用线程，仅重启worker"""
         print(f"重启计时器 {idx}")
 
@@ -83,7 +83,10 @@ class Boss():
             self.threads[idx].start()
 
         # 延迟一小段时间后启动worker，确保线程已准备好
-        QTimer.singleShot(50, worker.start_worker)
+        if  killtime_record:
+            QTimer.singleShot(50, lambda: worker.start_worker(killtime_record))
+        else:
+            QTimer.singleShot(50, worker.start_worker)
 
         print(f"计时器 {idx} 重启成功")
         return True
@@ -161,20 +164,26 @@ class Boss():
             return f"经过{hour_since_kill}小时，已丢失"
 
 
-Boss_疯狂喵Z客 = Boss('疯狂喵Z客', '00:00', '01:50')
+Boss_疯狂喵Z客 = Boss('疯狂喵Z客', '01:50', '07:00')
 Boss_僵尸蘑菇王 = Boss('僵尸蘑菇王', '03:15', '03:45')
 Boss_巴洛古 = Boss('巴洛古', '06:45', '09:00')
 # Boss_巴洛古 = Boss('巴洛古', '00:00', '00:01')
 Boss_蘑菇王 = Boss('蘑菇王', '03:15', '03:45')
 Boss_雪毛怪人 = Boss('雪毛怪人', '00:45', '01:08')
+Boss_雪山女巫 = Boss('雪山女巫', '02:38', '03:00')
 Boss_喷火龙 = Boss('喷火龙', '00:59', '01:00')
 Boss_格瑞芬多 = Boss('格瑞芬多', '00:59', '01:00')
 Boss_寒霜冰龙 = Boss('寒霜冰龙', '04:00', '12:00')
 Boss_海怒斯 = Boss('海怒斯', '03:00', '05:00')
 Boss_仙人娃娃 = Boss('仙人娃娃', '02:38', '03:00')
+Boss_肯德熊 = Boss('肯德熊', '01:53', '02:08')
 Boss_蓝色蘑菇王 = Boss('蓝色蘑菇王', '12:00', '23:59')
 Boss_黑轮王 = Boss('黑轮王', '13:00', '17:00')
 Boss_九尾妖狐 = Boss('九尾妖狐', '03:30', '09:30')
+Boss_书生幽灵 = Boss('书生幽灵', '02:30', '05:00')
+Boss_葛雷金刚 = Boss('葛雷金刚', '04:30', '05:50')
+
+
 
 
 
@@ -190,6 +199,7 @@ class BossKillProject(Ui_BossKillProject, QDialog):
         # 下拉栏连接文本槽
         self.comboBox_Name.currentIndexChanged.connect(self.MinMaxtime)
         self.pushButton_Savedata.clicked.connect(self.savedata)
+        self.pushButton_Savedata_2.clicked.connect(self.readdata)
 
         for i in range(115):
             btn = getattr(self,f"pushButton_Killrecord_{i}")
@@ -239,7 +249,7 @@ class BossKillProject(Ui_BossKillProject, QDialog):
         self.comboBox_Name.setEnabled(False)
 
     #刷新状态函数
-    def Refreshstata(self,idx:int):
+    def Refreshstata(self,idx:int,killtime_record:datetime = None):
         target_name = self.comboBox_Name.currentText()
         found_boss = Boss.find_by_name(target_name)
         found_boss.kill_time = self.kill_time
@@ -251,7 +261,10 @@ class BossKillProject(Ui_BossKillProject, QDialog):
             found_boss.kill_time = self.kill_time
             lineEdit_Refresh = getattr(self, f"lineEdit_Refresh_{idx}")
             label_Stata = getattr(self, f"label_Stata_{idx}")
-            found_boss.get_status(lineEdit_Refresh,label_Stata,idx)
+            if  killtime_record:
+                found_boss.get_status(lineEdit_Refresh,label_Stata,idx,killtime_record)
+            else:
+                found_boss.get_status(lineEdit_Refresh,label_Stata,idx)
     # 忽略Esc关闭窗口，容易误触
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
@@ -268,11 +281,22 @@ class BossKillProject(Ui_BossKillProject, QDialog):
     def savedata(self):
         softpath = os.getcwd()
         record_data_name_list = os.listdir(softpath)
+        if self.lineEdit_Mintime.text() != '':
+            record_data_starttime_second = int(self.lineEdit_Mintime.text().split(':')[0])*3600 + int(self.lineEdit_Mintime.text().split(':')[1])*60
+            record_data_endtime_second = int(self.lineEdit_Maxtime.text().split(':')[0])*3600 + int(self.lineEdit_Maxtime.text().split(':')[1])*60
+            record_data_midtime_second = int(record_data_starttime_second + record_data_endtime_second)/2
+        else:
+            record_data_starttime_second = int(1 * 3600 + 50* 60)
+            record_data_endtime_second = int(7 * 3600 )
+            record_data_midtime_second = int(record_data_starttime_second + record_data_endtime_second) / 2
         if 'Boss击杀记录' not in record_data_name_list:
             with open('Boss击杀记录.txt',"a+",encoding="utf-8") as f:
                 f.write("\n---------------------------------------------\n")
-                f.close()
+            with open('Boss击杀记录.ini',"w",encoding="utf-8") as fr:
+                fr.seek(0)
+                fr.truncate()
         record_data_name = os.path.join(softpath,"Boss击杀记录.txt")
+        record_data_read = os.path.join(softpath,"Boss击杀记录.ini")
         with open(record_data_name,'a+',encoding="utf-8") as f:
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             f.write(timestamp)
@@ -282,16 +306,99 @@ class BossKillProject(Ui_BossKillProject, QDialog):
             f.write("\n")
             f.write(f'{"线路":16}')
             f.write(f'{"击杀时间":16}')
+            f.write(f'{"大概率刷新时间":16}')
+            f.write(f'{"绝对刷新时间":16}')
             f.write("\n")
             for i in range(115):
                 lineEdit_Line_save = getattr(self, f"lineEdit_Line_{i}").text()
                 lineEdit_Killtime_save = getattr(self, f"lineEdit_Killtime_{i}").text()
+                if lineEdit_Killtime_save != "":
+                    lineEdit_Killtime_save_hour = int(getattr(self, f"lineEdit_Killtime_{i}").text().split(':')[0])
+                    lineEdit_Killtime_save_min = int(getattr(self, f"lineEdit_Killtime_{i}").text().split(':')[1])
+                    lineEdit_Killtime_save_second = int(getattr(self, f"lineEdit_Killtime_{i}").text().split(':')[2])
+                    lineEdit_Killtime_save_secondtime = int(lineEdit_Killtime_save_hour*3600 + lineEdit_Killtime_save_min*60+lineEdit_Killtime_save_second)
+                    lineEdit_Killtime_save_midrefresh = int(lineEdit_Killtime_save_secondtime +record_data_midtime_second)
+                    lineEdit_Killtime_save_endrefresh = int(lineEdit_Killtime_save_secondtime +record_data_endtime_second)
+                    if lineEdit_Killtime_save_midrefresh <= 86400:
+                        hours = lineEdit_Killtime_save_midrefresh // 3600
+                        minutes = (lineEdit_Killtime_save_midrefresh % 3600) // 60
+                        seconds = lineEdit_Killtime_save_midrefresh % 60
+                        lineEdit_Killtime_save_midrefresh = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+                    else:
+                        lineEdit_Killtime_save_midrefresh = lineEdit_Killtime_save_midrefresh - 86400
+                        hours = lineEdit_Killtime_save_midrefresh // 3600
+                        minutes = (lineEdit_Killtime_save_midrefresh % 3600) // 60
+                        seconds = lineEdit_Killtime_save_midrefresh % 60
+                        lineEdit_Killtime_save_midrefresh = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+                    if lineEdit_Killtime_save_endrefresh <= 86400:
+                        hours = lineEdit_Killtime_save_endrefresh // 3600
+                        minutes = (lineEdit_Killtime_save_endrefresh % 3600) // 60
+                        seconds = lineEdit_Killtime_save_endrefresh % 60
+                        lineEdit_Killtime_save_endrefresh = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+                    else:
+                        lineEdit_Killtime_save_endrefresh = lineEdit_Killtime_save_endrefresh - 86400
+                        hours = lineEdit_Killtime_save_endrefresh // 3600
+                        minutes = (lineEdit_Killtime_save_endrefresh % 3600) // 60
+                        seconds = lineEdit_Killtime_save_endrefresh % 60
+                        lineEdit_Killtime_save_endrefresh = f'{hours:02d}:{minutes:02d}:{seconds:02d}'
+
                 if lineEdit_Killtime_save  != "" and lineEdit_Line_save != "":
                     f.write("\n")
                     f.write(f'{lineEdit_Line_save:16}')
                     f.write(f'{lineEdit_Killtime_save:16}')
+                    f.write(f'{lineEdit_Killtime_save_midrefresh:16}')
+                    f.write(f'{lineEdit_Killtime_save_endrefresh:16}')
                     f.write("\n")
-            f.close()
+        with open(record_data_read,'w',encoding="utf-8") as fr:
+            fr.seek(0)
+            fr.truncate()
+            fr.write(f'{self.comboBox_Name.currentText():16}')
+            fr.write(f'{str(datetime.today().date()):16}')
+            fr.write("\n")
+            for i in range(115):
+                lineEdit_Line_save = getattr(self, f"lineEdit_Line_{i}").text()
+                lineEdit_Killtime_save = getattr(self, f"lineEdit_Killtime_{i}").text()
+                if lineEdit_Killtime_save  != "" and lineEdit_Line_save != "":
+                    fr.write(f'{lineEdit_Line_save:16}')
+                    fr.write(f'{lineEdit_Killtime_save:16}')
+                    fr.write("\n")
+    def readdata(self):
+
+        softpath = os.getcwd()
+        record_data_name_list = os.listdir(softpath)
+        if 'Boss击杀记录.ini' not in record_data_name_list:
+            pass
+        else:
+            with open('Boss击杀记录.ini','r',encoding="utf-8") as fr:
+                lines = fr.readlines()
+            boss_killtime_save_name = lines[0].split()[0]
+            boss_killtime_save_data = lines[0].split()[1]
+            self.comboBox_Name.setCurrentText(boss_killtime_save_name)
+            for i in range(115):
+                lineEdit_Line = getattr(self, f"lineEdit_Line_{i}")
+                lineEdit_Killtime = getattr(self, f"lineEdit_Killtime_{i}")
+                if lineEdit_Line.text() != "" or lineEdit_Killtime.text() != "":
+                    lineEdit_Line.setText('')
+                    lineEdit_Killtime.setText('')
+            k = 0
+            for j in lines[1:]:
+                if j != '':
+                    lineEdit_Line = getattr(self, f"lineEdit_Line_{k}")
+                    lineEdit_Killtime = getattr(self, f"lineEdit_Killtime_{k}")
+                    lines_line = j.split()[0]
+                    lineEdit_Line.setText(lines_line)
+                    lines_Killtime = j.split()[1]
+                    lineEdit_Killtime.setText(lines_Killtime)
+                    datetime_str=f"{boss_killtime_save_data} {lines_Killtime}"
+                    dt_obj = datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+                    self.kill_time = dt_obj
+                    self.Refreshstata(k,dt_obj)
+                    k += 1
+
+
+
+
+
 
 
 
@@ -313,7 +420,7 @@ class TimegoWorker(QObject):
         self.timer = None
         self.thread_start_time = 0
 
-    def start_worker(self):
+    def start_worker(self,killtime_record:datetime = None):
         """启动worker计时"""
         if self.timer:
             self.timer.stop()
@@ -321,7 +428,10 @@ class TimegoWorker(QObject):
 
         self.running = True
         self.refreshtime = 0
-        self.thread_start_time = time.time()
+        if killtime_record:
+            self.thread_start_time = killtime_record.timestamp()
+        else:
+            self.thread_start_time = time.time()
 
         # 创建定时器，每10秒触发一次
         self.timer = QTimer()
@@ -350,7 +460,7 @@ class TimegoWorker(QObject):
             elif (self.start_time + self.end_time) / 2 <= self.refreshtime < self.end_time:
                 lineEdit_Refresh_text = '大概率刷新'
                 color_background = "background-color: rgb(0, 255, 0);"
-            elif self.end_time <= self.refreshtime < (self.end_time + 100):
+            elif self.end_time <= self.refreshtime < (self.end_time + 300):
                 lineEdit_Refresh_text = '已经刷新'
                 color_background = "background-color: rgb(255, 255, 0);"
             elif self.refreshtime >= (self.end_time + 300):

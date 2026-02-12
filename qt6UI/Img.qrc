@@ -1,5 +1,9 @@
 <RCC>
   <qresource prefix="img">
+    <file>Image/葛雷金刚.png</file>
+    <file>Image/肯德熊.png</file>
+    <file>Image/书生幽灵.png</file>
+    <file>Image/雪山女巫.png</file>
     <file>Image/僵尸蘑菇王.png</file>
     <file>Image/巴洛古.png</file>
     <file>Image/格瑞芬多.png</file>
