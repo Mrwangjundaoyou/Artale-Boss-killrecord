@@ -447,9 +447,12 @@ class TimegoWorker(QObject):
             return
 
         # 计算从线程启动开始的经过时间
-        elapsed_time = time.time() - self.thread_start_time
-        self.refreshtime = int(elapsed_time)  # 转换为整数秒
-
+        if int(time.time() - self.thread_start_time) >= 0:
+            elapsed_time = time.time() - self.thread_start_time
+            self.refreshtime = int(elapsed_time)  # 转换为整数秒
+        else:
+            elapsed_time = int(time.time() - self.thread_start_time) + 86400
+            self.refreshtime = int(elapsed_time)  # 转换为整数秒
         try:
             if self.refreshtime < self.start_time:
                 lineEdit_Refresh_text = '未刷新'
